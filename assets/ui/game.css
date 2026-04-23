@@ -30,7 +30,8 @@ body {
   background: radial-gradient(circle at top, #49608e 0%, #27324f 34%, #151b2d 100%);
   color: var(--cream);
   image-rendering: pixelated;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 body::before {
@@ -105,17 +106,32 @@ body::before {
   color: #cf6f7c;
 }
 
+/* ===== AJUSTE DO CONTAINER PRINCIPAL (MENU-BOARD) =====
+   Problema:
+   - altura fixa baseada em viewport (100vh) estava cortando conteúdo
+   - elementos internos (menu/sidebar) ultrapassavam o limite da tela
+
+   Solução:
+   - manter altura baseada na tela, mas permitir controle interno
+   - evitar estouro de layout
+*/
+/* ===== LAYOUT ORIGINAL DO MENU ===== */
 .menu-board {
   padding: 18px;
   height: calc(100vh - 28px);
-  display: flex;
-  flex-direction: column;
+
+  display: grid;
+  grid-template-columns: 1fr 320px; /* esquerda + sidebar */
+  gap: 16px;
+
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .menu-grid {
   flex: 1;
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr) 268px;
+  grid-template-columns: 240px minmax(0, 1fr) 240px;
   gap: 16px;
   margin-top: 16px;
   min-height: 0;
@@ -170,19 +186,45 @@ body::before {
   position: relative;
 }
 
+/* ===== AJUSTE DE ENQUADRAMENTO DA SIDEBAR =====
+   Objetivo:
+   - impedir que os elementos do menu saiam da tela
+   - permitir rolagem vertical quando faltar espaco
+   - manter os botoes organizados em coluna
+
+   Resultado esperado:
+   - a sidebar continua em coluna
+   - quando a janela ficar menor, o conteudo nao vaza
+   - o usuario pode rolar a area do menu
+*/
 .menu-sidebar {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  min-height: 0;
+
+  overflow-y: auto;
+  max-height: 100%;
+}
+/* ===== AJUSTE DA PILHA DE BOTOES =====
+   Objetivo:
+   - manter os botoes empilhados corretamente
+   - evitar que um botao empurre o outro para fora da tela
+*/
+.button-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.button-stack,
-.selection-panel,
+.selection-panel.is-open {
+  display: block;
+}
 .resolution-action-list,
 .office-actions {
   display: grid;
   gap: 10px;
+  max-height: 100%;
+  overflow-y: auto;
 }
 
 .pixel-button,
@@ -284,11 +326,10 @@ body::before {
 }
 
 .mini-controls__grid,
-.summary-grid,
-.control-editor,
-.game-over-grid {
+.summary-grid {
   display: grid;
-  gap: 8px;
+  grid-template-columns: 1fr;
+  gap: 12px;
 }
 
 .mini-controls__grid {
@@ -296,7 +337,7 @@ body::before {
 }
 
 .summary-grid {
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr;
 }
 
 .summary-box,
@@ -1164,4 +1205,24 @@ body::before {
   .game-over-actions {
     flex-direction: column;
   }
+}
+/* ===== AJUSTES GERAIS DE RESPONSIVIDADE =====
+   Objetivo:
+   - melhorar o encaixe do jogo dentro da janela
+   - evitar vazamento horizontal
+   - permitir que colunas internas respeitem o tamanho disponivel
+*/
+body {
+  overflow: hidden;
+}
+
+.menu-sidebar,
+.button-stack {
+  min-width: 0;
+}
+
+button,
+.panel-button,
+.menu-button {
+  max-width: 100%;
 }

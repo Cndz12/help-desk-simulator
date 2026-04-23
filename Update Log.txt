@@ -1,0 +1,128 @@
+==============================
+UPDATE LOG — HELP DESK SIMULATOR
+==============================
+
+VERSÃO: 0.2 (MECÂNICAS E ESTABILIZAÇÃO)
+DATA: [coloca a data de hoje]
+
+----------------------------------------
+🛠️ CORREÇÕES CRÍTICAS
+----------------------------------------
+
+• Corrigido erro de importações no ticket_system.js
+  - Funções faltando export (getTicketAgeLabel, escalatePriority, etc.)
+  - Ajustado para evitar erro: "does not provide an export named"
+
+• Corrigido erro de sintaxe no JavaScript
+  - Falta de chaves {} em funções auxiliares
+  - Quebra de parsing que impedia o jogo de iniciar
+
+• Corrigido erro no menu_scene.js
+  - Função sem nome (function sem identifier)
+  - Restaurado padrão: export function renderMenuScene()
+
+• Corrigido erro no Python (webview)
+  - Removido argumento inválido "debug" do create_window
+  - Corrigido erro de indentação (unexpected indentation)
+
+----------------------------------------
+🎮 MELHORIAS DE MECÂNICAS
+----------------------------------------
+
+• Sistema de SLA implementado
+  - Tickets agora possuem prazo (sla_deadline)
+  - Sistema detecta quando SLA é estourado
+  - Feedback visual + alerta sonoro
+
+• Sistema de prioridade melhorado
+  - Introduzido escalatePriority()
+  - Tickets podem subir de prioridade automaticamente
+
+• Sistema de idade do ticket
+  - Estados: Novo → Recente → Aguardando → Antigo
+  - Baseado no tempo de criação do ticket
+
+• Sistema de paciência do usuário
+  - Tickets perdem paciência ao longo do tempo
+  - Tickets expiram quando paciência chega a 0
+  - Penalidades aplicadas:
+    - Reputação ↓
+    - Stress ↑
+    - Satisfação ↓
+
+----------------------------------------
+⚖️ BALANCEAMENTO DE JOGO
+----------------------------------------
+
+• Redução na velocidade de spawn de tickets
+  - Ajustado spawn_timer e spawn_interval
+
+• Redução da degradação de paciência
+  - Diminuição do impacto de difficulty.penalty_modifier
+
+• Ajuste na progressão de tempo
+  - Tickets não ficam "antigos" tão rápido
+
+• Redução da agressividade do SLA
+  - Menos tickets estourando cedo
+
+----------------------------------------
+🖥️ INTERFACE (UI/UX)
+----------------------------------------
+
+• Corrigido layout do menu principal
+  - Restaurado sistema de 2 colunas:
+    - menu-main (conteúdo)
+    - menu-sidebar (ações)
+
+• Reativado preview visual do escritório
+  - Função renderMenuOfficePreview integrada novamente
+
+• Corrigido problema de elementos saindo da tela
+  - Ajustes em:
+    - menu-board (grid layout)
+    - menu-sidebar (scroll)
+    - button-stack (organização vertical)
+
+----------------------------------------
+🧾 DOCUMENTAÇÃO INTERNA
+----------------------------------------
+
+• Adicionados comentários explicativos em:
+  - ticket_catalog.js
+  - ticket_system.js
+  - menu_scene.js
+
+• Padronização de estrutura:
+  - Separação clara entre:
+    - lógica de tickets
+    - renderização de UI
+    - funções auxiliares
+
+----------------------------------------
+🚧 MELHORIAS PLANEJADAS (PRÓXIMO UPDATE)
+----------------------------------------
+
+• Sistema de diagnóstico de tickets
+  - Etapa obrigatória antes de resolver
+  - Mais profundidade nas decisões
+
+• Sistema de tipos de erro
+  - Hardware / Rede / Software
+
+• Expansão para outros setores (não só TI)
+  - RH, Administrativo, etc
+
+• Sistema de eventos aleatórios
+  - Ex: "queda geral", "bug crítico", etc
+
+----------------------------------------
+STATUS ATUAL
+----------------------------------------
+
+✔ Jogo funcional
+✔ Mecânicas básicas estáveis
+✔ Interface corrigida
+✔ Base pronta para expansão
+
+----------------------------------------

@@ -46,7 +46,7 @@ def main() -> None:
             min_size=(960, 640),
             resizable=True,
         )
-        webview.start()
+        webview.start(debug=True)
     finally:
         server.shutdown()
         server.server_close()

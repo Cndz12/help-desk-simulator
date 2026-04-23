@@ -1,6 +1,8 @@
 import { OFFICE_USERS, TECHNICIAN } from "../characters/character_roster.js";
 import { spriteMarkup } from "../assets/sprites/sprite_manager.js";
 
+// ===== TEXTO DO MENU =====
+// Define os textos auxiliares exibidos no painel lateral do menu principal.
 const MENU_COPY = {
   tutorial: {
     title: "Como jogar",
@@ -12,98 +14,88 @@ const MENU_COPY = {
   }
 };
 
+// ===== CENA PRINCIPAL DO MENU =====
+// Esta funcao monta a tela inicial do jogo.
+//
+// Estrutura:
+// - menu-board: layout principal em duas colunas
+// - menu-main: area esquerda com preview do escritorio e destaque do jogo
+// - menu-sidebar: area direita com botoes, informacoes e controles
+//
+// Ajuste realizado:
+// - restaurado o layout original em duas colunas
+// - reativado o preview visual do escritorio no menu
+// - mantido o painel lateral com botoes e informacoes
 export function renderMenuScene(state, helpers) {
-  const sidebar = state.menu.step === "idle"
-    ? renderIdleSidebar(state, helpers)
-    : renderSetupSidebar(state, helpers);
+  const currentInfo = MENU_COPY[state.menu.sidebar_tab] || MENU_COPY.tutorial;
 
   return `
-    <main class="menu-screen">
-      <section class="menu-board">
-        <header class="hud-bar">
-          <span>SHIFT: MANHA</span>
-          <span>STATUS: ONLINE</span>
-          <span>NIVEL: SUPORTE 1</span>
-        </header>
+    <div class="menu-board">
+      <section class="menu-main">
+        <div class="panel-window menu-hero">
+          ${renderMenuOfficePreview()}
+        </div>
 
-        <div class="menu-grid">
-          <section class="brand-column">
-            <div class="brand-icon-frame">
-              ${spriteMarkup("ui", "clipboard_logo", {
-                size: 128,
-                class_name: "menu-clipboard"
-              })}
-            </div>
-            <div class="brand-copy">
-              <h1>HELP DESK<br>SIMULATOR</h1>
-              <p>
-                Assuma o suporte tecnico, resolva tickets, mantenha a reputacao
-                da equipe e sobreviva ao caos do escritorio.
-              </p>
-            </div>
-          </section>
-
-          <section class="menu-illustration">
-            ${renderMenuOfficePreview()}
-          </section>
-
-          <aside class="menu-sidebar">
-            ${sidebar}
-          </aside>
+        <div class="panel-window menu-intro">
+          <div class="menu-intro__content">
+            <h1 class="menu-title">HELP DESK<br>SIMULATOR</h1>
+            <p class="menu-description">
+              Assuma o suporte tecnico, resolva tickets, mantenha a reputacao da equipe
+              e sobreviva ao caos do escritorio.
+            </p>
+          </div>
         </div>
       </section>
-    </main>
-  `;
-}
 
-function renderIdleSidebar(state, helpers) {
-  const currentInfo = MENU_COPY[state.menu.sidebar_tab] || MENU_COPY.credits;
+      <aside class="menu-sidebar">
+        <div class="panel-header">
+          <span>Menu principal</span>
+          <span class="panel-rec">REC</span>
+        </div>
 
-  return `
-    <div class="panel-header">
-      <span>Menu principal</span>
-      <span class="panel-rec">REC</span>
-    </div>
+        <div class="button-stack">
+          <button class="pixel-button pixel-button--primary" data-dispatch="menu/start">Iniciar jogo</button>
+          <button class="pixel-button" data-dispatch="overlay/open" data-type="controls">Configurar controles</button>
+          <button class="pixel-button" data-dispatch="menu/info" data-tab="tutorial">Como jogar</button>
+          <button class="pixel-button" data-dispatch="menu/info" data-tab="credits">Creditos</button>
+        </div>
 
-    <div class="button-stack">
-      <button class="pixel-button pixel-button--primary" data-dispatch="menu/start">Iniciar jogo</button>
-      <button class="pixel-button" data-dispatch="overlay/open" data-type="controls">Configurar controles</button>
-      <button class="pixel-button" data-dispatch="menu/info" data-tab="tutorial">Como jogar</button>
-      <button class="pixel-button" data-dispatch="menu/info" data-tab="credits">Creditos</button>
-    </div>
+        <div class="panel-card panel-card--notes">
+          <h2>${currentInfo.title}</h2>
+          <p>${currentInfo.body}</p>
+        </div>
 
-    <div class="panel-card panel-card--notes">
-      <h2>${currentInfo.title}</h2>
-      <p>${currentInfo.body}</p>
-    </div>
+        <div class="mini-controls">
+          <div class="mini-controls__header">
+            <span>Controles atuais</span>
+            <button class="micro-button" data-dispatch="overlay/open" data-type="controls">Alterar</button>
+          </div>
+          <div class="mini-controls__grid">
+            ${renderControlSummary(state.settings.controls)}
+          </div>
+        </div>
 
-    <div class="mini-controls">
-      <div class="mini-controls__header">
-        <span>Controles atuais</span>
-        <button class="micro-button" data-dispatch="overlay/open" data-type="controls">Alterar</button>
-      </div>
-      <div class="mini-controls__grid">
-        ${renderControlSummary(state.settings.controls)}
-      </div>
-    </div>
-
-    <div class="summary-grid">
-      <div class="summary-box">
-        <span>Dificuldade</span>
-        <strong>${helpers.difficulties[state.settings.difficulty].label}</strong>
-      </div>
-      <div class="summary-box">
-        <span>Modo</span>
-        <strong>${helpers.modes[state.settings.mode].label}</strong>
-      </div>
-      <div class="summary-box">
-        <span>Sprites</span>
-        <strong>Placeholder</strong>
-      </div>
+        <div class="summary-grid">
+          <div class="summary-box">
+            <span>Dificuldade</span>
+            <strong>${helpers.difficulties[state.settings.difficulty].label}</strong>
+          </div>
+          <div class="summary-box">
+            <span>Modo</span>
+            <strong>${helpers.modes[state.settings.mode].label}</strong>
+          </div>
+          <div class="summary-box">
+            <span>Sprites</span>
+            <strong>Placeholder</strong>
+          </div>
+        </div>
+      </aside>
     </div>
   `;
 }
 
+// ===== SIDEBAR DE CONFIGURACAO =====
+// Painel usado quando o jogador escolhe modo e dificuldade antes de iniciar a partida.
 function renderSetupSidebar(state, helpers) {
   if (state.menu.step === "mode") {
     return `
@@ -144,6 +136,8 @@ function renderSetupSidebar(state, helpers) {
   `;
 }
 
+// ===== PREVIEW VISUAL DO ESCRITORIO =====
+// Gera a cena ilustrativa do escritorio exibida na tela inicial.
 function renderMenuOfficePreview() {
   const showcaseUsers = [OFFICE_USERS[0], OFFICE_USERS[1], TECHNICIAN, OFFICE_USERS[2], OFFICE_USERS[3]];
 
@@ -172,8 +166,13 @@ function renderMenuOfficePreview() {
   `;
 }
 
+// ===== CLUSTER DE MESA =====
+// Monta um conjunto visual com mesa, computador, cadeira e personagem.
 function renderDeskCluster(character, modifier) {
-  const statusIcon = character.id === TECHNICIAN.id ? spriteMarkup("effects", "alert_icon", { size: 30, class_name: "desk-cluster__alert" }) : "";
+  const statusIcon = character.id === TECHNICIAN.id
+    ? spriteMarkup("effects", "alert_icon", { size: 30, class_name: "desk-cluster__alert" })
+    : "";
+
   const modifierClasses = modifier
     .split(" ")
     .map((item) => `desk-cluster--${item}`)
@@ -194,6 +193,8 @@ function renderDeskCluster(character, modifier) {
   `;
 }
 
+// ===== RESUMO DE CONTROLES =====
+// Exibe apenas os quatro controles principais na tela inicial.
 function renderControlSummary(controls) {
   return Object.entries(controls)
     .slice(0, 4)

@@ -321,7 +321,7 @@ export class GameController {
       menu: {
         step: "idle",
         draft_mode: settings.mode,
-        sidebar_tab: "credits"
+        sidebar_tab: null
       },
       settings,
       sprite_summary: spriteSummary(),
@@ -427,7 +427,21 @@ export class GameController {
     this.pushFeed(`Novo ticket: ${ticket.title} para ${ticket.user_name}.`);
     this.queueSound("alert");
   }
-
+// ===== SISTEMA DE SLA (Vamos mudar o nome depois) =====
+// Este bloco verifica se algum ticket ultrapassou o tempo limite de resolucao.
+//
+// Funcionamento:
+// - Cada ticket possui um "sla_deadline"
+// - Quando o tempo atual ultrapassa esse valor:
+//    -> o ticket e marcado como "sla_breached"
+//    -> prioridade do ticket e aumentada automaticamente
+//    -> penalidades sao aplicadas (stress ↑, reputacao ↓)
+//    -> um aviso e exibido no feed do jogo
+//
+// Importante:
+// - A penalidade acontece apenas UMA VEZ por ticket
+// - Tickets com SLA estourado passam a ser mais perigosos
+//   pois perdem paciencia mais rapido (ver logica abaixo)
   tick() {
     if (!this.state.run || this.state.scene !== "game" || this.state.run.paused) {
       return;
@@ -437,6 +451,21 @@ export class GameController {
     const difficulty = DIFFICULTY_PRESETS[this.state.settings.difficulty];
     const difficultyScale = getDifficultyScale(this.state.run.resolved);
     this.state.run.time_minutes += mode.time_step;
+    // ===== VERIFICAR SLA DOS TICKETS =====
+  for (const ticket of this.state.run.queue) {
+    if (!ticket.sla_breached && this.state.run.time_minutes > ticket.sla_deadline) {
+     ticket.sla_breached = true;
+ 
+     // penalidade por SLA estourado
+    ticket.priority = escalatePriority(ticket.priority);
+    this.state.run.stress = Math.min(100, this.state.run.stress + 2);
+    this.state.run.reputation = Math.max(0, this.state.run.reputation - 1);
+
+    // feedback visual/log
+    this.pushFeed(`SLA estourado: ${ticket.title}`);
+    this.queueSound("warning");
+  }
+}
 
     if (this.state.run.time_minutes >= 12 * 60 && this.state.run.day_label === "MANHA") {
       this.state.run.day_label = "TARDE";
@@ -458,15 +487,27 @@ export class GameController {
       0,
       100
     );
-
+// ===== DEGRADACAO DE PACIENCIA =====
+// Todos os tickets perdem paciencia ao longo do tempo.
+//
+// Regras:
+// - A perda base depende da prioridade do ticket
+// - Tickets com prioridade maior degradam mais rapido
+// - Tickets com SLA estourado sofrem perda adicional
+//
+// Ajuste atual de balanceamento:
+// - A penalidade extra por SLA foi reduzida para evitar
+//   que os tickets expirem rapido demais na dificuldade normal
     this.state.run.queue = this.state.run.queue.map((ticket) => {
-      const loss = getPriorityMeta(ticket.priority).weight * difficulty.penalty_modifier;
+  const baseLoss = getPriorityMeta(ticket.priority).weight * difficulty.penalty_modifier;
+  const slaExtraLoss = ticket.sla_breached ? 0.5 : 0;
+  const totalLoss = baseLoss + slaExtraLoss;
 
-      return {
-        ...ticket,
-        patience: clamp(ticket.patience - loss, 0, 100)
-      };
-    });
+  return {
+    ...ticket,
+    patience: clamp(ticket.patience - totalLoss, 0, 100)
+  };
+});
 
     const expired = this.state.run.queue.filter((ticket) => ticket.patience <= 0);
 
@@ -480,10 +521,21 @@ export class GameController {
       this.pushFeed(`${expired.length} ticket(s) explodiram em reclamacoes por falta de retorno.`);
       this.queueSound("error");
     }
-
-    if (this.state.run.spawn_timer <= 0 && this.state.run.queue.length < 8) {
+// ===== CONTROLE DE SPAWN DE TICKETS =====
+// Define quando novos tickets aparecem no jogo.
+//
+// Regras:
+// - Um novo ticket só surge quando o spawn_timer chega a 0
+// - Existe um limite máximo de tickets simultaneos (queue.length)
+// - O tempo de spawn depende do modo e da dificuldade
+//
+// Ajustes de balanceamento:
+// - Limite de tickets reduzido para evitar sobrecarga
+// - Tempo minimo de spawn aumentado para dar respiro ao jogador
+// - Impacto da dificuldade reduzido para evitar crescimento explosivo
+    if (this.state.run.spawn_timer <= 0 && this.state.run.queue.length < 5) {
       this.spawnTicket();
-      this.state.run.spawn_timer = Math.max(2, Math.round(mode.spawn_interval * difficulty.spawn_modifier - difficultyScale * 0.2));
+      this.state.run.spawn_timer = Math.max(4, Math.round(mode.spawn_interval * difficulty.spawn_modifier - difficultyScale * 0.5));
     }
 
     if (this.state.run.event_timer <= 0) {
