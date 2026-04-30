@@ -75,7 +75,56 @@ export function createTicket({ user, ticketId, timeMinutes, difficultyScale }) {
 // - in_progress (em andamento)
 export function evaluateTicketAction(ticket, actionKey) {
   const issue = TICKET_CATALOG.find((item) => item.id === ticket.issue_id);
+if (actionKey === "diagnose") {
+  const issue = TICKET_CATALOG.find((item) => item.id === ticket.issue_id);
 
+  const diagnosisList = issue?.diagnosis || ["Problema nao identificado."];
+  const diagnosis = diagnosisList[Math.floor(Math.random() * diagnosisList.length)];
+
+  return {
+    ticket: {
+      ...ticket,
+      diagnosed: true,
+      status: "Diagnosticado"
+    },
+    result: {
+      kind: "info",
+      message: diagnosis,
+      effects: {
+        reputation: 0,
+        stress: -1,
+        satisfaction: 1
+      },
+      resolves: false,
+      is_diagnosis: true
+    }
+  };
+}
+  // ===== NOVA ACAO: DIAGNOSTICO =====
+  if (actionKey === "diagnose") {
+    const issue = getIssueById(ticket.issue_id);
+    const diagnosisList = issue?.diagnosis || ["Problema nao identificado."];
+    const diagnosis = diagnosisList[Math.floor(Math.random() * diagnosisList.length)];
+
+    return {
+      ticket: {
+        ...ticket,
+        diagnosed: true,
+        status: "Diagnosticado"
+      },
+      result: {
+        kind: "info",
+        message: `Diagnostico realizado: ${diagnosis}`,
+        effects: {
+          reputation: 0,
+          stress: -1,
+          satisfaction: 1
+        },
+        resolves: false,
+        is_diagnosis: true
+      }
+    };
+  }
   if (!issue) {
     return {
       ticket: {

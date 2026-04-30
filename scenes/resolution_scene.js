@@ -51,7 +51,7 @@ export function renderResolutionScene(state) {
         <aside class="resolution-actions">
           <div class="panel-header">
             <span>Acoes disponiveis</span>
-            <span>5 opcoes</span>
+            <span>${ACTION_ORDER.length} opcoes</span>
           </div>
           <div class="resolution-action-list">
             ${ACTION_ORDER.map((actionKey, index) => renderActionButton(state.settings.controls[`action_${index + 1}`], actionKey)).join("")}

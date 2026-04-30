@@ -11,7 +11,7 @@ import webview
 
 
 PROJECT_DIR = Path(__file__).resolve().parent
-ROOT_DIR = Path(getattr(sys, "_MEIPASS", PROJECT_DIR))
+ROOT_DIR = Path(getattr(sys, "_[ME]IPASS", PROJECT_DIR))
 
 
 class SilentRequestHandler(SimpleHTTPRequestHandler):

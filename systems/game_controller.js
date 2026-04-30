@@ -70,6 +70,7 @@ const DEFAULT_CONTROLS = {
   action_3: "3",
   action_4: "4",
   action_5: "5",
+  action_6: "6",
   pause: "P",
   back: "Escape"
 };
@@ -129,6 +130,7 @@ export class GameController {
           }
         });
         return;
+
       case "menu/back":
         this.updateState({
           menu: {
@@ -137,6 +139,7 @@ export class GameController {
           }
         });
         return;
+
       case "menu/mode":
         this.updateState({
           menu: {
@@ -146,9 +149,11 @@ export class GameController {
           }
         });
         return;
+
       case "menu/difficulty":
         this.startGame(payload.difficulty);
         return;
+
       case "menu/info":
         this.updateState({
           menu: {
@@ -157,6 +162,7 @@ export class GameController {
           }
         });
         return;
+
       case "overlay/open":
         this.updateState({
           overlay: {
@@ -165,11 +171,13 @@ export class GameController {
           }
         });
         return;
+
       case "overlay/close":
         this.updateState({
           overlay: null
         });
         return;
+
       case "controls/listen":
         this.updateState({
           overlay: {
@@ -178,6 +186,7 @@ export class GameController {
           }
         });
         return;
+
       case "controls/reset":
         this.state.settings.controls = { ...DEFAULT_CONTROLS };
         this.persistSettings();
@@ -188,12 +197,15 @@ export class GameController {
           }
         });
         return;
+
       case "office/select-ticket":
         this.selectTicket(payload.ticket_id);
         return;
+
       case "office/open-ticket":
         this.openSelectedTicket();
         return;
+
       case "office/back-to-menu":
         this.updateState({
           scene: "menu",
@@ -205,6 +217,7 @@ export class GameController {
           run: null
         });
         return;
+
       case "office/toggle-pause":
         if (this.state.run) {
           this.state.run.paused = !this.state.run.paused;
@@ -213,9 +226,11 @@ export class GameController {
           this.commit();
         }
         return;
+
       case "resolution/action":
         this.resolveTicket(payload.action_key);
         return;
+
       case "resolution/back":
         if (this.state.run) {
           this.state.run.scene = "office";
@@ -223,6 +238,7 @@ export class GameController {
           this.commit();
         }
         return;
+
       case "game/restart":
         this.updateState({
           scene: "menu",
@@ -234,6 +250,7 @@ export class GameController {
           run: null
         });
         return;
+
       default:
         return;
     }
@@ -289,8 +306,10 @@ export class GameController {
         controls.action_2,
         controls.action_3,
         controls.action_4,
-        controls.action_5
+        controls.action_5,
+        controls.action_6
       ];
+
       const index = hotkeys.findIndex((hotkey) => hotkey === key);
 
       if (index >= 0) {
@@ -394,6 +413,7 @@ export class GameController {
     this.state.menu.step = "idle";
     this.state.run = run;
     this.state.overlay = null;
+
     this.seedQueue();
     this.queueSound("alert");
     this.commit();
@@ -414,6 +434,7 @@ export class GameController {
     const candidates = OFFICE_USERS.filter((user) => !busyUsers.has(user.id));
     const user = randomItem(candidates.length ? candidates : OFFICE_USERS);
     const difficultyScale = getDifficultyScale(this.state.run.resolved);
+
     const ticket = createTicket({
       user,
       ticketId: this.state.run.ticket_counter,
@@ -424,24 +445,11 @@ export class GameController {
     this.state.run.queue.unshift(ticket);
     this.state.run.ticket_counter += 1;
     this.state.run.selected_ticket_id = this.state.run.queue[0]?.id || null;
+
     this.pushFeed(`Novo ticket: ${ticket.title} para ${ticket.user_name}.`);
     this.queueSound("alert");
   }
-// ===== SISTEMA DE SLA (Vamos mudar o nome depois) =====
-// Este bloco verifica se algum ticket ultrapassou o tempo limite de resolucao.
-//
-// Funcionamento:
-// - Cada ticket possui um "sla_deadline"
-// - Quando o tempo atual ultrapassa esse valor:
-//    -> o ticket e marcado como "sla_breached"
-//    -> prioridade do ticket e aumentada automaticamente
-//    -> penalidades sao aplicadas (stress ↑, reputacao ↓)
-//    -> um aviso e exibido no feed do jogo
-//
-// Importante:
-// - A penalidade acontece apenas UMA VEZ por ticket
-// - Tickets com SLA estourado passam a ser mais perigosos
-//   pois perdem paciencia mais rapido (ver logica abaixo)
+
   tick() {
     if (!this.state.run || this.state.scene !== "game" || this.state.run.paused) {
       return;
@@ -450,22 +458,23 @@ export class GameController {
     const mode = MODE_PRESETS[this.state.settings.mode];
     const difficulty = DIFFICULTY_PRESETS[this.state.settings.difficulty];
     const difficultyScale = getDifficultyScale(this.state.run.resolved);
-    this.state.run.time_minutes += mode.time_step;
-    // ===== VERIFICAR SLA DOS TICKETS =====
-  for (const ticket of this.state.run.queue) {
-    if (!ticket.sla_breached && this.state.run.time_minutes > ticket.sla_deadline) {
-     ticket.sla_breached = true;
- 
-     // penalidade por SLA estourado
-    ticket.priority = escalatePriority(ticket.priority);
-    this.state.run.stress = Math.min(100, this.state.run.stress + 2);
-    this.state.run.reputation = Math.max(0, this.state.run.reputation - 1);
 
-    // feedback visual/log
-    this.pushFeed(`SLA estourado: ${ticket.title}`);
-    this.queueSound("warning");
-  }
-}
+    this.state.run.time_minutes += mode.time_step;
+
+    // ===== SISTEMA DE SLA =====
+    // Verifica se algum ticket passou do prazo limite.
+    for (const ticket of this.state.run.queue) {
+      if (!ticket.sla_breached && this.state.run.time_minutes > ticket.sla_deadline) {
+        ticket.sla_breached = true;
+        ticket.priority = escalatePriority(ticket.priority);
+
+        this.state.run.stress = Math.min(100, this.state.run.stress + 2);
+        this.state.run.reputation = Math.max(0, this.state.run.reputation - 1);
+
+        this.pushFeed(`SLA estourado: ${ticket.title}`);
+        this.queueSound("warning");
+      }
+    }
 
     if (this.state.run.time_minutes >= 12 * 60 && this.state.run.day_label === "MANHA") {
       this.state.run.day_label = "TARDE";
@@ -475,7 +484,9 @@ export class GameController {
 
     this.state.run.spawn_timer -= 1;
     this.state.run.event_timer -= 1;
+
     const queuePressure = Math.max(0, this.state.run.queue.length - 2);
+
     this.state.run.stress = clamp(
       this.state.run.stress + queuePressure * mode.queue_pressure + difficulty.stress_drain,
       0,
@@ -487,59 +498,49 @@ export class GameController {
       0,
       100
     );
-// ===== DEGRADACAO DE PACIENCIA =====
-// Todos os tickets perdem paciencia ao longo do tempo.
-//
-// Regras:
-// - A perda base depende da prioridade do ticket
-// - Tickets com prioridade maior degradam mais rapido
-// - Tickets com SLA estourado sofrem perda adicional
-//
-// Ajuste atual de balanceamento:
-// - A penalidade extra por SLA foi reduzida para evitar
-//   que os tickets expirem rapido demais na dificuldade normal
-    this.state.run.queue = this.state.run.queue.map((ticket) => {
-  const baseLoss = getPriorityMeta(ticket.priority).weight * difficulty.penalty_modifier;
-  const slaExtraLoss = ticket.sla_breached ? 0.5 : 0;
-  const totalLoss = baseLoss + slaExtraLoss;
 
-  return {
-    ...ticket,
-    patience: clamp(ticket.patience - totalLoss, 0, 100)
-  };
-});
+    // ===== DEGRADACAO DE PACIENCIA =====
+    // Tickets perdem paciencia com o tempo.
+    // Tickets com SLA estourado perdem um pouco mais.
+    this.state.run.queue = this.state.run.queue.map((ticket) => {
+      const baseLoss = getPriorityMeta(ticket.priority).weight * difficulty.penalty_modifier * 0.6;
+      const slaExtraLoss = ticket.sla_breached ? 0.5 : 0;
+      const totalLoss = baseLoss + slaExtraLoss;
+
+      return {
+        ...ticket,
+        patience: clamp(ticket.patience - totalLoss, 0, 100)
+      };
+    });
 
     const expired = this.state.run.queue.filter((ticket) => ticket.patience <= 0);
 
     if (expired.length) {
       this.state.run.queue = this.state.run.queue.filter((ticket) => ticket.patience > 0);
+
       this.applyEffects({
         reputation: -4 * expired.length,
         stress: 8 * expired.length,
         satisfaction: -7 * expired.length
       });
+
       this.pushFeed(`${expired.length} ticket(s) explodiram em reclamacoes por falta de retorno.`);
       this.queueSound("error");
     }
-// ===== CONTROLE DE SPAWN DE TICKETS =====
-// Define quando novos tickets aparecem no jogo.
-//
-// Regras:
-// - Um novo ticket só surge quando o spawn_timer chega a 0
-// - Existe um limite máximo de tickets simultaneos (queue.length)
-// - O tempo de spawn depende do modo e da dificuldade
-//
-// Ajustes de balanceamento:
-// - Limite de tickets reduzido para evitar sobrecarga
-// - Tempo minimo de spawn aumentado para dar respiro ao jogador
-// - Impacto da dificuldade reduzido para evitar crescimento explosivo
+
+    // ===== CONTROLE DE SPAWN DE TICKETS =====
+    // Controla quando novos tickets aparecem.
     if (this.state.run.spawn_timer <= 0 && this.state.run.queue.length < 5) {
       this.spawnTicket();
-      this.state.run.spawn_timer = Math.max(4, Math.round(mode.spawn_interval * difficulty.spawn_modifier - difficultyScale * 0.5));
+      this.state.run.spawn_timer = Math.max(
+        4,
+        Math.round(mode.spawn_interval * difficulty.spawn_modifier - difficultyScale * 0.5)
+      );
     }
 
     if (this.state.run.event_timer <= 0) {
       const event = randomItem(RANDOM_EVENTS);
+
       this.applyEffects(event.effects);
       this.pushFeed(`${event.title}: ${event.message}`);
       this.queueSound(event.cue);
@@ -578,6 +579,7 @@ export class GameController {
 
     const currentIndex = this.state.run.queue.findIndex((ticket) => ticket.id === this.state.run.selected_ticket_id);
     const nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % this.state.run.queue.length;
+
     this.state.run.selected_ticket_id = this.state.run.queue[nextIndex].id;
     this.queueSound("alert");
     this.commit();
@@ -614,7 +616,37 @@ export class GameController {
     const evaluation = evaluateTicketAction(activeTicket, actionKey);
     const issue = getIssueById(activeTicket.issue_id);
     const meta = evaluation.result;
-    this.applyEffects(scaleEffects(meta.effects, DIFFICULTY_PRESETS[this.state.settings.difficulty].penalty_modifier, meta.kind));
+
+    // ===== TRATAMENTO ESPECIAL: DIAGNOSTICO =====
+    // Diagnosticar nao resolve o ticket.
+    // Apenas marca como diagnosticado e mostra o feedback.
+    if (meta.is_diagnosis) {
+      this.state.run.queue = this.state.run.queue.map((ticket) =>
+        ticket.id === activeTicket.id ? evaluation.ticket : ticket
+      );
+
+      this.state.run.active_ticket_id = evaluation.ticket.id;
+      this.state.run.selected_ticket_id = evaluation.ticket.id;
+
+      this.state.run.resolution_feedback = {
+        tone: "info",
+        message: meta.message,
+        icon: "alert_icon"
+      };
+
+      this.pushFeed(meta.message);
+      this.queueSound("alert");
+      this.commit();
+      return;
+    }
+
+    this.applyEffects(
+      scaleEffects(
+        meta.effects,
+        DIFFICULTY_PRESETS[this.state.settings.difficulty].penalty_modifier,
+        meta.kind
+      )
+    );
 
     if (meta.resolves) {
       this.state.run.queue = this.state.run.queue.filter((ticket) => ticket.id !== activeTicket.id);
@@ -623,6 +655,7 @@ export class GameController {
       this.state.run.resolved += 1;
       this.state.run.scene = "office";
       this.state.run.resolution_feedback = null;
+
       this.pushFeed(`${issue.title} resolvido para ${activeTicket.user_name}: ${meta.message}`);
       this.queueSound(meta.kind === "success" ? "success" : "warning");
       this.commit();
@@ -634,14 +667,20 @@ export class GameController {
       priority: escalatePriority(activeTicket.priority),
       patience: clamp(activeTicket.patience - 18, 0, 100)
     };
-    this.state.run.queue = this.state.run.queue.map((ticket) => ticket.id === activeTicket.id ? updatedTicket : ticket);
+
+    this.state.run.queue = this.state.run.queue.map((ticket) =>
+      ticket.id === activeTicket.id ? updatedTicket : ticket
+    );
+
     this.state.run.active_ticket_id = updatedTicket.id;
     this.state.run.selected_ticket_id = updatedTicket.id;
+
     this.state.run.resolution_feedback = {
       tone: meta.kind,
       message: meta.message,
       icon: meta.kind === "chaos" ? "error_icon" : "alert_icon"
     };
+
     this.pushFeed(`${issue.title} piorou para ${activeTicket.user_name}. Ticket voltou mais bravo.`);
     this.queueSound(meta.kind === "chaos" ? "error" : "warning");
 

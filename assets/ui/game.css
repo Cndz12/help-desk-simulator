@@ -1226,3 +1226,66 @@ button,
 .menu-button {
   max-width: 100%;
 }
+/* ===== LAYOUT CORRETO DA SIDEBAR DO JOGO ===== */
+
+.game-layout {
+  height: calc(100vh - 104px);
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* SIDEBAR PRINCIPAL */
+.queue-sidebar {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+}
+
+/* FILA DE TICKETS (PARTE QUE ROLA) */
+.queue-list {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+/* RADIO (FIXO COM LIMITE) */
+.feed-list {
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+/* CONTROLES (SEMPRE VISIVEL) */
+.control-hints {
+  flex-shrink: 0;
+}
+/* ===== AJUSTE FINO DA TELA DE ATENDIMENTO ===== */
+
+.resolution-screen {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.resolution-layout {
+  height: calc(100vh - 104px);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.resolution-stage,
+.resolution-actions {
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.resolution-action-list {
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.action-button {
+  padding: 10px 12px;
+}

@@ -18,6 +18,7 @@
 // Esse arquivo controla o comportamento dos problemas.
 // Para adicionar novos tickets, basta seguir esse padrao.
 export const ACTION_ORDER = [
+  "diagnose",
   "reset_password",
   "swap_cable",
   "restart_pc",
@@ -26,6 +27,7 @@ export const ACTION_ORDER = [
 ];
 
 export const ACTION_LABELS = {
+  diagnose: "Diagnosticar",
   reset_password: "Reset senha",
   swap_cable: "Trocar cabo",
   restart_pc: "Reiniciar PC",
@@ -56,7 +58,12 @@ export const TICKET_CATALOG = [
     sla_minutes: 40,
     diagnosis_required: true,
     reopen_chance: 0.25,
-    
+
+    diagnosis: [
+      "Cabo desconectado",
+      "Roteador travado",
+      "Problema no servidor"
+    ],
     device_hint: "computer",
     user_prompt: "A internet sumiu e a reuniao ja comecou no Teams.",
     summary: "Sem acesso a rede corporativa.",
@@ -76,8 +83,12 @@ export const TICKET_CATALOG = [
     severity: 2,
     sla_minutes: 20,
     diagnosis_required: true,
+    diagnosis: [
+      "Conta pode estar bloqueada por muitas tentativas.",
+      "Senha pode estar incorreta ou expirada.",
+      "Usuario pode estar tentando acessar o sistema errado."
+    ],
     reopen_chance: 1.0,
-
     device_hint: "computer",
     user_prompt: "A tela diz senha invalida e eu tenho certeza absoluta de que estou digitando certo.",
     summary: "Falha de autenticacao.",
@@ -91,25 +102,30 @@ export const TICKET_CATALOG = [
     }
   },
   {
-  id: "monitor_apagado",
-  title: "Monitor apagado",
-  category: "hardware",
-  severity: 2,
-  sla_minutes: 30,
-  diagnosis_required: true,
-  reopen_chance: 0.2,
-  device_hint: "computer",
-  user_prompt: "O monitor esta preto, mas o gabinete faz barulho de foguete.",
-  summary: "Video sem imagem.",
-  priority_weights: { low: 1, medium: 3, high: 4 },
-  outcomes: {
-    reset_password: outcome("wrong", "A senha continua normal. O monitor continua um belo retangulo preto.", -3, 5, -4, false),
-    swap_cable: outcome("success", "O cabo de video estava mal encaixado. Imagem voltou na hora.", 5, -4, 7, true),
-    restart_pc: outcome("partial", "Depois da reinicializacao a imagem volta, mas o usuario perde o arquivo nao salvo.", 1, 2, -1, true),
-    escalate_n2: outcome("escalated", "N2 manda trocar a porta do monitor. Resolve sem glamour.", 1, 0, 1, true),
-    ignore: outcome("chaos", "Voce ignora e o usuario comeca a bater no botao power como se fosse um ritual.", -7, 9, -8, false)
-  }
-},
+    id: "monitor_apagado",
+    title: "Monitor apagado",
+    category: "hardware",
+    severity: 2,
+    sla_minutes: 30,
+    diagnosis_required: true,
+    diagnosis: [
+      "Cabo desconectado",
+      "Monitor Desligado",
+      "Tela Queimou"
+    ],
+    reopen_chance: 1.0,
+    device_hint: "computer",
+    user_prompt: "O monitor esta preto, mas o gabinete faz barulho de foguete.",
+    summary: "Video sem imagem.",
+    priority_weights: { low: 1, medium: 3, high: 4 },
+    outcomes: {
+      reset_password: outcome("wrong", "A senha continua normal. O monitor continua um belo retangulo preto.", -3, 5, -4, false),
+      swap_cable: outcome("success", "O cabo de video estava mal encaixado. Imagem voltou na hora.", 5, -4, 7, true),
+      restart_pc: outcome("partial", "Depois da reinicializacao a imagem volta, mas o usuario perde o arquivo nao salvo.", 1, 2, -1, true),
+      escalate_n2: outcome("escalated", "N2 manda trocar a porta do monitor. Resolve sem glamour.", 1, 0, 1, true),
+      ignore: outcome("chaos", "Voce ignora e o usuario comeca a bater no botao power como se fosse um ritual.", -7, 9, -8, false)
+    }
+  },
   {
     id: "impressora_falha",
     title: "Impressora nao funciona",
@@ -118,6 +134,11 @@ export const TICKET_CATALOG = [
     sla_minutes: 20,
     diagnosis_required: true,
     reopen_chance: 0.23,
+    diagnosis: [
+      "Cabo desconectado",
+      "Cabo da Impressora desconectado no computador",
+      "Sem tinta."
+    ],
 
     device_hint: "printer",
     user_prompt: "A impressora pisca, geme e se recusa a imprimir a folha 1.",
@@ -139,6 +160,11 @@ export const TICKET_CATALOG = [
     sla_minutes: 20,
     diagnosis_required: true,
     reopen_chance: 1.0,
+    diagnosis: [
+      "Acesso bloqueado.",
+      "Sistema fora do ar.",
+      "Reze."
+    ],
 
     device_hint: "server_rack",
     user_prompt: "O sistema congelou na hora exata em que eu precisava provar que ele funcionava.",
@@ -160,6 +186,11 @@ export const TICKET_CATALOG = [
     sla_minutes: 10,
     diagnosis_required: true,
     reopen_chance: 1.0,
+    diagnosis: [
+      "Resetar Senha.",
+      "Conta bloqueada.",
+      "Problema do Usuario."
+    ],
 
     device_hint: "computer",
     user_prompt: "A senha expirou num horario que parece planejado para causar dor emocional.",
@@ -181,6 +212,11 @@ export const TICKET_CATALOG = [
     sla_minutes: 10,
     diagnosis_required: true,
     reopen_chance: 1.0,
+    diagnosis: [
+      "Cabo desconectado(pensa um pouco).",
+      "Dar outro cabo.",
+      "Bater no Usuario."
+    ],
 
     device_hint: "computer",
     user_prompt: "Troquei a mesa de lugar e agora tudo acende menos o sistema.",
@@ -207,4 +243,5 @@ function outcome(kind, message, reputation, stress, satisfaction, resolves) {
     },
     resolves
   };
+
 }

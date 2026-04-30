@@ -1,128 +1,201 @@
-==============================
-UPDATE LOG — HELP DESK SIMULATOR
-==============================
+/*
+==================================================
+📌 UPDATE LOG — HELP DESK SIMULATOR
+Autor: Vitor
+==================================================
 
-VERSÃO: 0.2 (MECÂNICAS E ESTABILIZAÇÃO)
-DATA: [coloca a data de hoje]
+🧠 1. CORREÇÕES DE ERROS CRÍTICOS
 
-----------------------------------------
-🛠️ CORREÇÕES CRÍTICAS
-----------------------------------------
+✔ Corrigido erro de imports:
+- Funções não exportadas no ticket_system.js
 
-• Corrigido erro de importações no ticket_system.js
-  - Funções faltando export (getTicketAgeLabel, escalatePriority, etc.)
-  - Ajustado para evitar erro: "does not provide an export named"
+✔ Funções adicionadas/exportadas:
+- getIssueById
+- escalatePriority
+- getDifficultyScale
 
-• Corrigido erro de sintaxe no JavaScript
-  - Falta de chaves {} em funções auxiliares
-  - Quebra de parsing que impedia o jogo de iniciar
+✔ Resultado:
+- Sistema deixou de crashar ao iniciar
+- Módulos passaram a comunicar corretamente
 
-• Corrigido erro no menu_scene.js
-  - Função sem nome (function sem identifier)
-  - Restaurado padrão: export function renderMenuScene()
 
-• Corrigido erro no Python (webview)
-  - Removido argumento inválido "debug" do create_window
-  - Corrigido erro de indentação (unexpected indentation)
+==================================================
+🎮 2. GAME CONTROLLER (CORE DO JOGO)
 
-----------------------------------------
-🎮 MELHORIAS DE MECÂNICAS
-----------------------------------------
+✔ Ajustado loop principal (tick)
+- Controle de tempo funcionando corretamente
+- Execução apenas quando:
+  scene === "game"
+  run ativo e não pausado
 
-• Sistema de SLA implementado
-  - Tickets agora possuem prazo (sla_deadline)
-  - Sistema detecta quando SLA é estourado
-  - Feedback visual + alerta sonoro
+✔ Adicionado:
+- Controle de tempo (time_minutes)
+- Sistema de eventos (manhã/tarde)
+- Controle de spawn de tickets
 
-• Sistema de prioridade melhorado
-  - Introduzido escalatePriority()
-  - Tickets podem subir de prioridade automaticamente
 
-• Sistema de idade do ticket
-  - Estados: Novo → Recente → Aguardando → Antigo
-  - Baseado no tempo de criação do ticket
+==================================================
+🔥 3. SISTEMA DE SLA (NOVO)
 
-• Sistema de paciência do usuário
-  - Tickets perdem paciência ao longo do tempo
-  - Tickets expiram quando paciência chega a 0
-  - Penalidades aplicadas:
-    - Reputação ↓
-    - Stress ↑
-    - Satisfação ↓
+✔ Implementado sistema de prazo dos tickets
 
-----------------------------------------
-⚖️ BALANCEAMENTO DE JOGO
-----------------------------------------
+Comportamento:
+- Ticket estoura ao passar do SLA
+- Marca:
+  ticket.sla_breached = true
 
-• Redução na velocidade de spawn de tickets
-  - Ajustado spawn_timer e spawn_interval
+✔ Impactos:
+- Aumenta stress
+- Diminui reputação
+- Aumenta prioridade automaticamente
 
-• Redução da degradação de paciência
-  - Diminuição do impacto de difficulty.penalty_modifier
+✔ Feedback:
+- Mensagem no rádio:
+  "SLA estourado"
 
-• Ajuste na progressão de tempo
-  - Tickets não ficam "antigos" tão rápido
 
-• Redução da agressividade do SLA
-  - Menos tickets estourando cedo
+==================================================
+⚖️ 4. BALANCEAMENTO DO JOGO
 
-----------------------------------------
-🖥️ INTERFACE (UI/UX)
-----------------------------------------
+✔ Spawn de tickets ajustado
 
-• Corrigido layout do menu principal
-  - Restaurado sistema de 2 colunas:
-    - menu-main (conteúdo)
-    - menu-sidebar (ações)
+ANTES:
+- Muitos tickets surgindo rapidamente
 
-• Reativado preview visual do escritório
-  - Função renderMenuOfficePreview integrada novamente
+DEPOIS:
+- spawn_timer maior
+- limite de fila reduzido
 
-• Corrigido problema de elementos saindo da tela
-  - Ajustes em:
-    - menu-board (grid layout)
-    - menu-sidebar (scroll)
-    - button-stack (organização vertical)
+✔ Resultado:
+- Jogo mais controlável
+- Menos caos inicial
 
-----------------------------------------
-🧾 DOCUMENTAÇÃO INTERNA
-----------------------------------------
 
-• Adicionados comentários explicativos em:
-  - ticket_catalog.js
-  - ticket_system.js
-  - menu_scene.js
+✔ SLA ajustado
+ANTES:
+- Tickets estouravam rápido demais
 
-• Padronização de estrutura:
-  - Separação clara entre:
-    - lógica de tickets
-    - renderização de UI
-    - funções auxiliares
+DEPOIS:
+- Mais tempo antes de estourar
 
-----------------------------------------
-🚧 MELHORIAS PLANEJADAS (PRÓXIMO UPDATE)
-----------------------------------------
 
-• Sistema de diagnóstico de tickets
-  - Etapa obrigatória antes de resolver
-  - Mais profundidade nas decisões
+✔ Degradação de paciência rework
 
-• Sistema de tipos de erro
-  - Hardware / Rede / Software
+ANTES:
+- Muito agressiva
 
-• Expansão para outros setores (não só TI)
-  - RH, Administrativo, etc
+DEPOIS:
+- Redução menor por tick
+- Aumenta se SLA estourado
 
-• Sistema de eventos aleatórios
-  - Ex: "queda geral", "bug crítico", etc
+✔ Resultado:
+- Jogador tem tempo de reagir
+- Jogo mais estratégico
 
-----------------------------------------
-STATUS ATUAL
-----------------------------------------
 
-✔ Jogo funcional
-✔ Mecânicas básicas estáveis
-✔ Interface corrigida
+==================================================
+🧩 5. SISTEMA DE DIAGNÓSTICO (NOVO)
+
+✔ Nova ação: "diagnose"
+
+✔ Comportamento:
+- NÃO resolve o ticket
+- Marca:
+  diagnosed = true
+- Mostra mensagem de análise
+
+✔ Fluxo corrigido no controller:
+- Uso de:
+  if (meta.is_diagnosis)
+
+✔ Resultado:
+- Diagnóstico funciona corretamente
+- Introduz tomada de decisão realista
+
+
+==================================================
+🧠 6. MELHORIA DE GAME DESIGN
+
+✔ Separação de ações:
+- Diagnóstico ≠ Solução
+
+✔ Sistema mais próximo do mundo real:
+- Jogador precisa entender antes de agir
+
+
+==================================================
+🖥️ 7. INTERFACE (UI/UX)
+
+✔ Corrigido erro:
+- "Unexpected token class" no menu
+
+✔ Ajustes:
+- Sidebar não estoura mais layout
+- Botões permanecem visíveis
+- Scroll controlado
+
+✔ Corrigido:
+- Botão "Atender selecionado" sumindo
+
+
+==================================================
+🧪 8. RESOLUTION SCENE
+
+✔ Corrigido:
+- Botão "Voltar ao escritório"
+
+✔ Ações funcionando:
+- Diagnosticar
+- Resetar senha
+- Trocar cabo
+- Reiniciar PC
+- Escalar
+- Ignorar
+
+✔ Feedback visual implementado
+
+
+==================================================
+📊 9. SISTEMA DE FEEDBACK
+
+✔ Rádio do escritório agora mostra:
+- Novos tickets
+- SLA estourado
+- Ações realizadas
+- Eventos importantes
+
+
+==================================================
+🧱 10. PROTÓTIPO HIGH FIDELITY
+
+✔ Criado mockup visual completo
+
+Inclui:
+- Tela inicial
+- Dashboard
+- Atendimento
+- Relatório final
+
+✔ Objetivo:
+- Apresentação visual do sistema final
+
+
+==================================================
+🚀 11. VISÃO FUTURA
+
+✔ Possível evolução:
+- Sistema de treinamento corporativo
+- Uso para estagiários/aprendizes
+- Expansão para outros setores
+
+
+==================================================
+📌 RESUMO
+
+✔ Sistema funcional
+✔ Mecânicas principais implementadas
+✔ Jogo jogável do início ao fim
 ✔ Base pronta para expansão
 
-----------------------------------------
+==================================================
+*/

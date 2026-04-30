@@ -29,6 +29,52 @@ const MENU_COPY = {
 export function renderMenuScene(state, helpers) {
   const currentInfo = MENU_COPY[state.menu.sidebar_tab] || MENU_COPY.tutorial;
 
+  const sidebarContent = state.menu.step !== "idle"
+    ? renderSetupSidebar(state, helpers)
+    : `
+      <div class="panel-header">
+        <span>Menu principal</span>
+        <span class="panel-rec">REC</span>
+      </div>
+
+      <div class="button-stack">
+        <button class="pixel-button pixel-button--primary" data-dispatch="menu/start">Iniciar jogo</button>
+        <button class="pixel-button" data-dispatch="overlay/open" data-type="controls">Configurar controles</button>
+        <button class="pixel-button" data-dispatch="menu/info" data-tab="tutorial">Como jogar</button>
+        <button class="pixel-button" data-dispatch="menu/info" data-tab="credits">Creditos</button>
+      </div>
+
+      <div class="panel-card panel-card--notes">
+        <h2>${currentInfo.title}</h2>
+        <p>${currentInfo.body}</p>
+      </div>
+
+      <div class="mini-controls">
+        <div class="mini-controls__header">
+          <span>Controles atuais</span>
+          <button class="micro-button" data-dispatch="overlay/open" data-type="controls">Alterar</button>
+        </div>
+        <div class="mini-controls__grid">
+          ${renderControlSummary(state.settings.controls)}
+        </div>
+      </div>
+
+      <div class="summary-grid">
+        <div class="summary-box">
+          <span>Dificuldade</span>
+          <strong>${helpers.difficulties[state.settings.difficulty].label}</strong>
+        </div>
+        <div class="summary-box">
+          <span>Modo</span>
+          <strong>${helpers.modes[state.settings.mode].label}</strong>
+        </div>
+        <div class="summary-box">
+          <span>Sprites</span>
+          <strong>Placeholder</strong>
+        </div>
+      </div>
+    `;
+
   return `
     <div class="menu-board">
       <section class="menu-main">
@@ -48,47 +94,7 @@ export function renderMenuScene(state, helpers) {
       </section>
 
       <aside class="menu-sidebar">
-        <div class="panel-header">
-          <span>Menu principal</span>
-          <span class="panel-rec">REC</span>
-        </div>
-
-        <div class="button-stack">
-          <button class="pixel-button pixel-button--primary" data-dispatch="menu/start">Iniciar jogo</button>
-          <button class="pixel-button" data-dispatch="overlay/open" data-type="controls">Configurar controles</button>
-          <button class="pixel-button" data-dispatch="menu/info" data-tab="tutorial">Como jogar</button>
-          <button class="pixel-button" data-dispatch="menu/info" data-tab="credits">Creditos</button>
-        </div>
-
-        <div class="panel-card panel-card--notes">
-          <h2>${currentInfo.title}</h2>
-          <p>${currentInfo.body}</p>
-        </div>
-
-        <div class="mini-controls">
-          <div class="mini-controls__header">
-            <span>Controles atuais</span>
-            <button class="micro-button" data-dispatch="overlay/open" data-type="controls">Alterar</button>
-          </div>
-          <div class="mini-controls__grid">
-            ${renderControlSummary(state.settings.controls)}
-          </div>
-        </div>
-
-        <div class="summary-grid">
-          <div class="summary-box">
-            <span>Dificuldade</span>
-            <strong>${helpers.difficulties[state.settings.difficulty].label}</strong>
-          </div>
-          <div class="summary-box">
-            <span>Modo</span>
-            <strong>${helpers.modes[state.settings.mode].label}</strong>
-          </div>
-          <div class="summary-box">
-            <span>Sprites</span>
-            <strong>Placeholder</strong>
-          </div>
-        </div>
+        ${sidebarContent}
       </aside>
     </div>
   `;
